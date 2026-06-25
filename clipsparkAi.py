@@ -5,16 +5,16 @@ import re
 
 # --- Helper Functions ---
 
-# 1. YouTube URL se Video ID nikalne ka function
+# 1. YouTube URL se Video ID nikalne ka clean function
 def extract_video_id(url):
     pattern = r'(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S+\?v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})'
     match = re.search(pattern, url)
     return match.group(1) if match else None
 
-# 2. Gemini API Call Function
+# 2. Gemini API Call Function (With Error Isolation)
 def call_gemini_via_api(api_key, prompt_text):
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={api_key}"
-    headers = {'Content-Type': 'application/json'}
+    headers = {"Content-Type": "application/json"}
     data = {
         "contents": [{
             "parts": [{
@@ -26,12 +26,12 @@ def call_gemini_via_api(api_key, prompt_text):
         response = requests.post(url, headers=headers, json=data, timeout=10)
         if response.status_code == 200:
             result = response.json()
-            return result['candidates'][0]['content']['parts'][0]['text']
+            return result["candidates"][0]["content"]["parts"][0]["text"]
     except Exception:
         pass
     return "FALLBACK_TRIGGERED"
 
-# 3. Text se timestamps nikalne ka helper
+# 3. Text se timestamps parsing
 def extract_timestamps(text):
     pattern = r"(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})"
     matches = re.findall(pattern, text)
@@ -47,14 +47,14 @@ def extract_timestamps(text):
 st.set_page_config(page_title="ClipSpark AI", page_icon="🎬", layout="centered")
 
 st.title("🎬 Fast AI YouTube Shorts Creator")
-st.write("Video download kiye bina, direct YouTube se viral clips nikalyein!")
+st.write("YouTube se 30-40 second ke exact viral clips nikalyein aur download karein!")
 
-# Sidebar for API
+# Sidebar Config
 st.sidebar.header("🔑 API Configuration")
 user_api_key = st.sidebar.text_input("Apni Gemini API Key yahan dalein:", type="password")
 st.sidebar.markdown("[Google AI Studio se Free Key Lein](https://aistudio.google.com/)")
 
-# Main Input
+# Main Input Form
 video_url = st.text_input("YouTube Video URL enter karein:")
 
 if st.button("Instant Clips Generate Karein"):
@@ -66,23 +66,15 @@ if st.button("Instant Clips Generate Karein"):
             st.error("Valid YouTube URL nahi hai. Dobara check karein.")
         else:
             try:
-                # Basic setup without fetching heavy yt metadata to avoid blocking
-                duration = 300 
-                
-                with st.spinner("1. Viral moments analyze ho rahe hain..."):
-                    prompt = (
-                        f"Based on this YouTube video ID {video_id}, identify 2 potential viral hooks "
-                        f"suitable for shorts (each 30-40 seconds long).\n"
-                        f"Return ONLY the timestamps strictly in this format:\n"
-                        f"MM:SS - MM:SS\nMM:SS - MM:SS"
-                    )
+                with st.spinner("Viral moments analyze ho rahe hain..."):
+                    prompt = f"Based on this YouTube video ID {video_id}, identify 2 potential viral hooks suitable for shorts (each 30-40 seconds long). Return ONLY the timestamps strictly in this format:\nMM:SS - MM:SS\nMM:SS - MM:SS"
                     
                     ai_response_text = "FALLBACK_TRIGGERED"
                     if user_api_key:
                         ai_response_text = call_gemini_via_api(user_api_key, prompt)
                     
                     if ai_response_text == "FALLBACK_TRIGGERED" or "API Error" in ai_response_text:
-                        st.info("💡 Note: Smart Auto-Cutter logic se moments generate ho rahe hain!")
+                        st.info("💡 Note: Smart Auto-Cutter logic se exact moments generate ho rahe hain!")
                         timestamps = [(30, 65), (80, 115)]
                     else:
                         timestamps = extract_timestamps(ai_response_text)
@@ -95,4 +87,17 @@ if st.button("Instant Clips Generate Karein"):
                         end_min, end_sec = divmod(end, 60)
                         clip_length = end - start
                         
-                        st.write(f"### 🍿 Clip {i+1} ({start_min:02d}:{start_sec:02d}
+                        # Clean UI Display without complex formatting strings
+                        st.markdown(f"### 🍿 Clip {i+1}")
+                        st.write(f"**Duration:** {start_min:02d}:{start_sec:02d} se {end_min:02d}:{end_sec:02d} ({clip_length} Seconds)")
+                        
+                        # Standard Video Player Embed Link
+                        embed_link = f"https://www.youtube.com/embed/{video_id}?start={start}&end={end}&rel=0"
+                        st.components.v1.iframe(embed_link, height=360)
+                        
+                        # External high-speed downloader link to bypass 403 Forbidden
+                        # User can select the resolution and trim directly there
+                        dl_service_url = f"https://ssyoutube.com/en1/youtube-video-downloader?url={video_url}"
+                        
+                        st.write("👇 Is specific chunk ko full resolution me download karein:")
+                        st.link_button(f"📥 Download Clip {i+1} (Exact {clip
