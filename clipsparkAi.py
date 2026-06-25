@@ -47,7 +47,7 @@ def extract_timestamps(text):
 st.set_page_config(page_title="ClipSpark AI", page_icon="🎬", layout="centered")
 
 st.title("🎬 Fast AI YouTube Shorts Creator")
-st.write("Video se 30-40 second ke exact viral clips nikalyein aur download karein!")
+st.write("Video download kiye bina, direct YouTube se viral clips nikalyein!")
 
 # Sidebar for API
 st.sidebar.header("🔑 API Configuration")
@@ -66,6 +66,9 @@ if st.button("Instant Clips Generate Karein"):
             st.error("Valid YouTube URL nahi hai. Dobara check karein.")
         else:
             try:
+                # Basic setup without fetching heavy yt metadata to avoid blocking
+                duration = 300 
+                
                 with st.spinner("1. Viral moments analyze ho rahe hain..."):
                     prompt = (
                         f"Based on this YouTube video ID {video_id}, identify 2 potential viral hooks "
@@ -79,7 +82,7 @@ if st.button("Instant Clips Generate Karein"):
                         ai_response_text = call_gemini_via_api(user_api_key, prompt)
                     
                     if ai_response_text == "FALLBACK_TRIGGERED" or "API Error" in ai_response_text:
-                        st.info("💡 Note: Smart Auto-Cutter logic se 30-40 seconds ke exact moments generate ho rahe hain!")
+                        st.info("💡 Note: Smart Auto-Cutter logic se moments generate ho rahe hain!")
                         timestamps = [(30, 65), (80, 115)]
                     else:
                         timestamps = extract_timestamps(ai_response_text)
@@ -92,14 +95,4 @@ if st.button("Instant Clips Generate Karein"):
                         end_min, end_sec = divmod(end, 60)
                         clip_length = end - start
                         
-                        st.write(f"### 🍿 Clip {i+1} ({start_min:02d}:{start_sec:02d} - {end_min:02d}:{end_sec:02d}) ~ [{clip_length} Seconds]")
-                        
-                        # Secure clean string embedding to fix the triple-quote error completely
-                        embed_src = f"https://www.youtube.com/embed/{video_id}?start={start}&end={end}&rel=0"
-                        html_string = f'<iframe width="100%" height="360" src="{embed_src}" frameborder="0" allowfullscreen></iframe>'
-                        st.components.v1.html(html_string, height=370)
-                        
-                        # 100% Working External Trimmer/Downloader URL redirection
-                        download_url = f"https://ssyoutube.com/en1/youtube-video-downloader?url={video_url}"
-                        
-                        st.write("👇 Is specific clip ko free high-quality me
+                        st.write(f"### 🍿 Clip {i+1} ({start_min:02d}:{start_sec:02d}
