@@ -21,14 +21,18 @@ def get_video_info(url):
 
 # 2. Direct YouTube se specific part download karne ka function (Super Fast)
 def download_exact_clip(url, start_sec, end_sec, output_path):
-   ydl_opts = {
-    'format': 'best',
-    'no_check_certificate': True,
-    'quiet': True,
-    'extractor_args': {
-        'youtube': {
-            'player_client': ['android', 'web']
+    ydl_opts = {
+        'format': 'best',
+        'no_check_certificate': True,
+        'quiet': True,
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['android', 'web']
+            }
         }
+    }
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        # Baki ka downloading code jo iske neeche tha, wo wese hi chalega
     }
 }
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
