@@ -32,10 +32,6 @@ def download_exact_clip(url, start_sec, end_sec, output_path):
         }
     }
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        # Baki ka downloading code jo iske neeche tha, wo wese hi chalega
-    }
-}
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download([url])
     return output_path
 
